@@ -1,0 +1,11 @@
+# Blueprint ל-Render - מגדיר את הבוט כ-Background Worker
+# ב-Render: New + -> Blueprint -> חבר את הריפו הזה, וזה ייקרא אוטומטית
+services:
+  - type: worker
+    name: telegram-downloader-bot
+    runtime: docker
+    plan: starter          # אין תוכנית free ל-background worker, המינימום הוא starter (7$/חודש)
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: BOT_TOKEN
+        sync: false          # תמלא ידנית בדשבורד של Render, לא בקוד
