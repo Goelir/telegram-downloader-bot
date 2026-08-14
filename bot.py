@@ -58,6 +58,10 @@ COOKIES_FILE = os.getenv("COOKIES_FILE") or os.getenv("INSTAGRAM_COOKIES")
 #   http://USER:PASS@gate.decodo.com:10001
 PROXY_URL = os.getenv("PROXY_URL")
 
+# אם aria2c מותקן בשרת (sudo apt install aria2), משתמשים בו כמוריד חיצוני עם
+# כמה חיבורים מקבילים - יכול לזרז משמעותית הורדות מפורמטים לא-מפוצלים (progressive).
+ARIA2C_AVAILABLE = shutil.which("aria2c") is not None
+
 # מגבלת טלגרם להעלאת קובץ ע"י בוט רגיל (Bot API בענן) היא כ-50MB.
 # אם תריץ Local Bot API Server אפשר להעלות עד 2GB - במקרה כזה שנה את הערך הזה.
 MAX_FILESIZE_BYTES = 50 * 1024 * 1024
@@ -117,6 +121,9 @@ def _build_ydl_opts(download_dir: str, mode: str) -> dict:
         "no_warnings": True,
         "restrictfilenames": True,
         "retries": 3,
+        # מוריד כמה פרגמנטים של פורמט מפוצל (DASH, נפוץ ביוטיוב) במקביל
+        # במקום אחד-אחרי-השני - מנצל יותר טוב את רוחב הפס הזמין.
+        "concurrent_fragment_downloads": 4,
     }
 
     if COOKIES_FILE and os.path.exists(COOKIES_FILE):
@@ -124,6 +131,13 @@ def _build_ydl_opts(download_dir: str, mode: str) -> dict:
 
     if PROXY_URL:
         common_opts["proxy"] = PROXY_URL
+
+    if ARIA2C_AVAILABLE:
+        # aria2c עם כמה חיבורים מקבילים לקובץ - מזרז הורדות של פורמטים לא-מפוצלים
+        common_opts["external_downloader"] = "aria2c"
+        common_opts["external_downloader_args"] = {
+            "aria2c": ["-x", "16", "-s", "16", "-k", "1M"]
+        }
 
     if mode == "audio":
         common_opts.update(
