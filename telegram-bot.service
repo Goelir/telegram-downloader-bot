@@ -1,0 +1,17 @@
+[Unit]
+Description=Telegram Downloader Bot
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/telegram-downloader-bot
+ExecStart=/home/ubuntu/telegram-downloader-bot/venv/bin/python3 bot.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/telegram-downloader-bot/bot.log
+StandardError=append:/home/ubuntu/telegram-downloader-bot/bot.log
+
+[Install]
+WantedBy=multi-user.target
